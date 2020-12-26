@@ -1,6 +1,6 @@
-## Link Coverter 
+## Link Converter 
 
-This is the project to be an URL to Deeplink converter. At this stage there are no endpoints initialized. 
+A project convert URL's to deeplinks and vice versa. 
 
 ### Running the service
 
@@ -16,7 +16,7 @@ You may access [Swagger UI](http://localhost:8080/swagger-ui.html) to display th
 
 ### Security
 
-Spring Web Security ensures authorization for accessing web services. In this demo application, username and password are embedded into SecurityConfig class. 
+Spring Web Security ensures authorization for accessing web services. In this demo application, username and password are embedded into SecurityConfig class.
 
 
 ### Test Coverage
@@ -28,14 +28,6 @@ mvn clean install
 
 The coverage file will be generated in your local directory ".../linkconverter/target/site/jacoco/index.html" 
 
-### Project Dependencies 
-- Java 1.8.0_131 
-- Spring Boot 2.4.1
-- maven 3.6.3
-- Swagger 2.4.0
-- Junit 5
-- Jacoco 0.8.6
-- MySQL connection, as specified in "Running the MSQL Database" section.
 
 ### Running the MSQL Database
 
@@ -44,3 +36,13 @@ The connection parameters of MySQL Database must be specified in the application
 ```
 CREATE DATABASE trendyoltest;
 ```
+
+
+### Project Dependencies 
+- Java 1.8.0_131 
+- Spring Boot 2.4.1
+- maven 3.6.3
+- Swagger 2.4.0
+- Junit 5
+- Jacoco 0.8.6
+- MySQL connection, as specified in "Running the MSQL Database" section.

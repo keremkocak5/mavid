@@ -10,6 +10,6 @@ import org.springframework.web.bind.annotation.RestController;
  **/
 @RestController
 @RequestMapping("/api/v1/linkconverter")
-public class LinkCoverterController {
+public class LinkConverterController {
 
 }

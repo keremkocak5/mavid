@@ -1,4 +1,4 @@
-package com.kocak.kerem.linkconverter.domain;
+package com.kocak.kerem.linkconverter.domain.bean;
 
 import com.kocak.kerem.linkconverter.enums.MatchType;
 import lombok.Builder;
@@ -9,7 +9,7 @@ import lombok.Setter;
 @Setter
 @Builder
 public class DeeplinkBean {
-    private String host;
+
     private String brandOrCategoryName;
     private String productName;
     private String contentId;
@@ -17,4 +17,5 @@ public class DeeplinkBean {
     private String merchantId;
     private String searchQuery;
     private MatchType matchType;
+
 }

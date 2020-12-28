@@ -4,15 +4,13 @@ A project to convert URLs to deeplinks and vice versa.
 
 ## Functional Background
 
-This web service converts an URL to deeplink, or a deeplink to an URL. Any input parameter which can be classified as "Product" or "Search" page is transformed into a corresponding link. Trendyol home page is returned as the output parameter for uncategorized input parameters. All requests are persisted into database. The records can be accessed in trendyoltest.ty_link_converter_log table. 
+This web service converts an URL to deeplink, or a deeplink to an URL. Any input parameter which can be classified as "Product" or "Search" page is transformed into a corresponding link. Trendyol home page is returned as the output parameter for uncategorized links. All requests are persisted into the database. The records can be accessed through *trendyoltest.ty_link_converter_log* table in the database. 
 
-Basic authentication is required to access the services, please read the "Security" section for a demo username and password. 
-
-For security reasons, "*" (asterisk) character is omitted from URLs when persisted into DB. 
-
-In case of a persistence layer failure, such as an exception while storing the transaction into the db, the web service continues functioning, and returns responses, tough the transactions would not be saved. The application is designed to return a response even if an internal exception occours. However, in the case when db is totaly inaccessible, the application will fail to start. 
+Basic authentication is required to access the services; please refer to the "Security" section of this document for a demo username and password. 
 
 Execution performance (in miliseconds) of each request is printed on the console.
+
+For security reasons, "*" (asterisk) character is omitted from URLs and deeplinks when persisted into DB. 
 
 ### URL to Deeplink
 
@@ -22,7 +20,7 @@ https://www.trendyol.com/{BrandName-or-CategoryName}/{ProductName}-p-{ContentId}
 
 All URLs are classified in the following three groups:
 
-(A) Product URLs
+(A) *Product URLs*
 - Product detail page URL must contain "-p-" text.
 - Product detail page URLs must contain contentId which is located after "-p-" prefix.
 - URL can contain boutiqueId and merchantId.
@@ -30,11 +28,11 @@ All URLs are classified in the following three groups:
 - If URL doesn't contain merchantId, MerchantId shouldn't be added to deeplink.
 - Deeplink and Web URL have differences on CampaignId and boutiqueId. Deeplinks have CampaignId, web URLs have boutiqueId.
 
-(B) Search URLs
+(B) *Search URLs*
 - Search pages must contain "tum--urunler".
 - "q" query are converted to Query deeplink parameter.
 
-(C) Other URLs
+(C) *Other URLs*
 - Any URL which does not match the above. The default page of Trendyol is returned for those.
 
 ##### API Access Information
@@ -45,9 +43,9 @@ The web service accepts JSON objects.
 
 Endpoint: http://localhost:8080/api/v1/linkconverter/deeplink
 
-Request Input Name | Request Input Details
------------- | -------------
-url | String. Min 10, max 450 characters. Specifies the url to be convered. Uppercase, lowercase and other variants are accepted. 
+Request Input Name | Optional/Mandatory | Type | Details
+------------ | ------------- | ------------- | -------------
+url | Mandatory | String | Min 10, max 450 characters. Urls are **not** case sensitive.
 
 Sample Request:
 
@@ -64,12 +62,58 @@ Sample Response:
 }
 ```
 
+### Deeplink to Url
+
+Every product in Trendyol has multiple product detail page URLs.
+
+ty://?Page=Product&ContentId={ContentId}&CampaignId={CampaignId}&MerchantId={MerchantId}
+
+All URLs are classified in the following three groups:
+
+(A) *Product URLs*
+- Product detail page URL must have a Page attribute set to "Product" 
+- Product detail page URL must have a ContentId attribute  
+
+
+(B) *Search URLs*
+- Product detail page URL must have a Page attribute set to "Search"
+
+(C) *Other URLs*
+- Any URL which does not match the above. The default page of Trendyol is returned for those.
+
+##### API Access Information
+
+HTTP Method: GET
+
+The web service accepts JSON objects. 
+
+Endpoint: http://localhost:8080/api/v1/linkconverter/url
+
+Request Input Name | Optional/Mandatory | Type | Details
+------------ | ------------- | ------------- | -------------
+deeplink | Mandatory | String | Min 10, max 450 characters. Deeplinks are case sensitive.
+
+Sample Request:
+
+```
+{
+	"deeplink" : "t://?Page=Search&deneme=312&Query=222&kerem=333"
+}
+```
+
+Sample Response: 
+```
+{
+    "url": "https://www.trendyol.com/tum--urunler?q=222"
+}
+```
+
 
 ## Tecnical Background
 
 ### Running the service
 
-The Maven command below can be used to run the application:
+This application uses port **8080**. The Maven command below can be used to run the application:
 ```
 mvn spring-boot:run
 ```
@@ -81,10 +125,10 @@ Once the application is up and running on your local device, you may access [Swa
 
 ### Security
 
-Spring Web Security ensures authentication for accessing web services. In this demo application, username and password are embedded into SecurityConfig class. Since this is only a demo, you can use user1/1234 to be gain access.
+Spring Web Security ensures authentication for accessing web services. In this demo application, username and password are embedded into SecurityConfig class. Since this is only a demo, you can use **user1/1234** to gain access.
 
 
-### Compiling the service
+### Compiling the project
 
 The following Maven command should be executed to compile the service:
 ```
@@ -100,15 +144,16 @@ mvn clean test
 
 A Jacoco coverage file will be generated in your local directory ".../linkconverter/target/site/jacoco/index.html" 
 
-### Running the MSQL Database
 
-The connection parameters of MySQL Database must be specified in the application.properties file. Do not forget to replace your username and password. The following line can be executed on MySQL server to create 'trendyoltest' DB. 
+### Running the MySQL Database
+
+The connection parameters of MySQL Database must be specified in the application.properties file. Do not forget to replace your username and password. The following command can be executed on MySQL server to create 'trendyoltest' DB. 
 
 ```
 CREATE DATABASE trendyoltest;
 ```
 
-Since Automatic DDL is disabled, the required tables of this application must be created manually. DDL for creating ty_link_converter_log table:
+Since Automatic DDL is disabled, the required tables of this application must be created manually. DDL for creating **ty_link_converter_log table** is as follows:
 
 ```
 CREATE TABLE  `trendyoltest`.`ty_link_converter_log` (
@@ -129,5 +174,8 @@ CREATE TABLE  `trendyoltest`.`ty_link_converter_log` (
 - maven 3.6.3
 - Swagger 2.4.0
 - Junit 5
+- JUnitParams 1.1.1
+- Project Lombok
+- mysql-connector-java
 - Jacoco 0.8.6
 - MySQL connection, as specified in "Running the MSQL Database" section.

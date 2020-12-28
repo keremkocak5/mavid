@@ -1,4 +1,4 @@
-package com.kocak.kerem.linkconverter.domain.request.dto;
+package com.kocak.kerem.linkconverter.domain.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -12,7 +12,7 @@ import java.io.Serializable;
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class LinkConverterRequestDTO implements Serializable {
+public class LinkConverterUrlRequestDTO implements Serializable {
 
     private static final long serialVersionUID = 1L;
 

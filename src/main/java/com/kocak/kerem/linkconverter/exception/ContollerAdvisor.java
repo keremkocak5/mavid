@@ -14,8 +14,8 @@ public class ContollerAdvisor extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleException(Exception ex) {
-        log.error("Unknown Exception: " + ex.getLocalizedMessage());
-        log.error("Unknown Exception: " + ex.getStackTrace());
+        log.error("Unknown Exception: {}", ex.getLocalizedMessage());
+        log.error("Unknown Exception: {}", (Object) ex.getStackTrace());
         return new ResponseEntity<>(Constants.MASTER_EXCEPTION, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 

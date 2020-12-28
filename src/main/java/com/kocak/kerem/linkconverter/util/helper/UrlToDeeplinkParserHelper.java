@@ -1,34 +1,36 @@
-package com.kocak.kerem.linkconverter.util;
+package com.kocak.kerem.linkconverter.util.helper;
 
-import com.kocak.kerem.linkconverter.domain.UrlBean;
+import com.kocak.kerem.linkconverter.domain.bean.UrlBean;
 import com.kocak.kerem.linkconverter.enums.MatchType;
 import com.kocak.kerem.linkconverter.exception.UrlParseException;
+import com.kocak.kerem.linkconverter.util.Constants;
+import com.kocak.kerem.linkconverter.util.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Objects;
 
 @Slf4j
-public class UrlDeepLinkParser {
+public class UrlToDeeplinkParserHelper {
+
+    private UrlToDeeplinkParserHelper() {
+    }
 
     /**
      * Accepts an Url as a String, and returns its parsed state in a UrlBean.
-     * Steps: Parse the URL, if the URL is invalid throw a MalformedURLException.
+     * Steps: Parse the URL, if the URL is invalid throw a UrlParseException.
      * Check if the url is secure (https) and if the host is www.trendyol.com.
      * Check if the url is a search or product page:
      * If not so, return an UrlBean for a Unclassified page.
-     * If so, parse the url string, and return the corresponding UrlBean, either for a search of Product query.
+     * If so, parse the url string, and return the corresponding UrlBean, either for a search or product page.
      */
-    public static UrlBean parseUrl(String urlString) throws UrlParseException, MalformedURLException {
+    public static UrlBean parseUrl(String urlString) throws UrlParseException {
         try {
             URL url = new URL(urlString);
-            UrlBean urlBean = UrlBean.builder().host(url.getPath()).build();
-            String path = url.getPath();
             String[] paths = url.getPath().split("/");
             String[] querys = null;
             if (Objects.nonNull(url.getQuery())) {
-                querys = url.getQuery().split("[\\=&]");
+                querys = url.getQuery().split("[=&]");
             }
             if (!isHttps(url.getProtocol())) {
                 return getUnclassifiedUrlBean();
@@ -37,7 +39,7 @@ public class UrlDeepLinkParser {
             } else if (isProductPage(paths)) {
                 return parseProductUrl(url.getHost(), paths, querys);
             } else if (isSearchPage(paths, querys)) {
-                return parseSearchUrl(url.getHost(), paths, querys);
+                return parseSearchUrl(url.getHost(), querys);
             } else {
                 return getUnclassifiedUrlBean();
             }
@@ -57,46 +59,40 @@ public class UrlDeepLinkParser {
     /**
      * Parse the search page's query.
      */
-    private static UrlBean parseSearchUrl(String host, String[] paths, String[] querys) throws UrlParseException {
-        String query = null;
-        for (int i = 0; i < (Objects.isNull(querys) ? 0 : querys.length - 1); i++) {
-            if (querys[i].equalsIgnoreCase(Constants.Q) && i < querys.length - 1) {
-                query = querys[i + 1];
-            }
-        }
+    private static UrlBean parseSearchUrl(String host, String[] querys) {
+        String query = StringUtils.getContextValue(Constants.Q, querys, true);
         if (Objects.isNull(query)) {
             return getUnclassifiedUrlBean();
         }
-
         return UrlBean.builder().host(host).searchQuery(query).matchType(MatchType.SEARCH).build();
     }
 
     /**
      * Parse the product page's boutiqueId, merchantId, contentId, productId, and brandOrCategoryName.
      */
-    private static UrlBean parseProductUrl(String host, String[] paths, String[] querys) throws UrlParseException {
+    private static UrlBean parseProductUrl(String host, String[] paths, String[] querys) {
         String[] productContent = splitProductQuery(paths);
-        if (Objects.isNull(productContent) || productContent.length < 2) {
+        if (productContent.length < 2) {
             return getUnclassifiedUrlBean();
         }
-        String boutique = null;
-        String merchant = null;
-        int boutiqueCount = 0;
-        int merchantCount = 0;
-        for (int i = 0; i < (Objects.isNull(querys) ? 0 : querys.length - 1); i++) {
-            if (querys[i].equalsIgnoreCase(Constants.BOUTIQUE_ID) && i < querys.length - 1) {
-                boutique = querys[i + 1];
-                boutiqueCount = i;
-            } else if (querys[i].equalsIgnoreCase(Constants.MERCHANT_ID) && i < querys.length - 1) {
-                merchant = querys[i + 1];
-                merchantCount = i;
-            }
-        }
-        if (Math.abs(boutiqueCount - merchantCount) % 2 != 0) {
+        String boutique = StringUtils.getContextValue(Constants.BOUTIQUE_ID, querys, true);
+        String merchant = StringUtils.getContextValue(Constants.MERCHANT_ID, querys, true);
+        if (!isQueriesAdjacent(querys)) {
             return getUnclassifiedUrlBean();
         }
         return UrlBean.builder().host(host).boutiqueId(boutique).brandOrCategoryName(paths[1]).productName(productContent[0]).contentId(productContent[1]).merchantId(merchant).matchType(MatchType.PRODUCT).build();
     }
+
+    /**
+     * check against cases such as ..?MerchantId&CampaignId=105064 , where a merchantId may seem like it is set to CampaignId.
+     * This recursion tendency invalidates the deeplink.
+     */
+    private static boolean isQueriesAdjacent(String[] querys) {
+        int boutiqueCount = StringUtils.getContextIndex(Constants.BOUTIQUE_ID, querys, true);
+        int merchantCount = StringUtils.getContextIndex(Constants.MERCHANT_ID, querys, true);
+        return ((boutiqueCount - merchantCount) % 2 == 0);
+    }
+
 
     /**
      * Validate that the url matches patterns of a search page
